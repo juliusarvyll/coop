@@ -98,7 +98,7 @@ export default async function CandidatesPage({
               defaultValue={positions[0]?.id}
               required
             >
-              {positions.map((position) => (
+              {positions.map((position: { id: number; name: string }) => (
                 <option key={position.id} value={position.id}>
                   {position.name}
                 </option>
@@ -144,7 +144,7 @@ export default async function CandidatesPage({
                   className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
                   required
                 >
-                  {positions.map((position) => (
+                  {positions.map((position: { id: number; name: string }) => (
                     <option key={position.id} value={position.id}>
                       {position.name}
                     </option>
