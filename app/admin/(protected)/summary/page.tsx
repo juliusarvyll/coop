@@ -4,6 +4,23 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+type CandidateTally = {
+  id: number;
+  name: string;
+  _count: {
+    selections: number;
+  };
+};
+
+type PositionTally = {
+  id: number;
+  name: string;
+  maxWinners: number;
+  _count: {
+    selections: number;
+  };
+  candidates: CandidateTally[];
+};
 
 function readFirst(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -136,15 +153,17 @@ export default async function SummaryPage({
       </div>
 
       <div className="space-y-3">
-        {positions.map((position) => {
-          const ranked = [...position.candidates].sort((left, right) => {
+        {positions.map((position: PositionTally) => {
+          const ranked = [...position.candidates].sort((left: CandidateTally, right: CandidateTally) => {
             const voteDiff = right._count.selections - left._count.selections;
             if (voteDiff !== 0) return voteDiff;
             return left.name.localeCompare(right.name);
           });
 
           const winnerIds = new Set(
-            ranked.slice(0, Math.max(0, position.maxWinners)).map((candidate) => candidate.id),
+            ranked
+              .slice(0, Math.max(0, position.maxWinners))
+              .map((candidate: CandidateTally) => candidate.id),
           );
 
           return (
@@ -163,7 +182,7 @@ export default async function SummaryPage({
                 <p className="mt-3 text-sm text-black/60">No candidates assigned yet.</p>
               ) : (
                 <ul className="mt-3 space-y-2">
-                  {ranked.map((candidate) => (
+                  {ranked.map((candidate: CandidateTally) => (
                     <li
                       key={candidate.id}
                       className="flex items-center justify-between rounded-md border border-black/10 px-3 py-2"

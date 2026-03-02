@@ -6,6 +6,22 @@ import {
 import { prisma } from "@/lib/prisma";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+type PositionOption = {
+  id: number;
+  name: string;
+};
+
+type CandidateRow = {
+  id: number;
+  name: string;
+  positionId: number;
+  position: {
+    name: string;
+  };
+  _count: {
+    selections: number;
+  };
+};
 
 function readFirst(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -98,7 +114,7 @@ export default async function CandidatesPage({
               defaultValue={positions[0]?.id}
               required
             >
-              {positions.map((position: { id: number; name: string }) => (
+              {positions.map((position: PositionOption) => (
                 <option key={position.id} value={position.id}>
                   {position.name}
                 </option>
@@ -121,7 +137,7 @@ export default async function CandidatesPage({
       ) : null}
 
       <div className="space-y-3">
-        {candidates.map((candidate) => (
+        {candidates.map((candidate: CandidateRow) => (
           <div key={candidate.id} className="rounded-xl border border-black/10 bg-white p-4">
             <form action={updateCandidate} className="grid gap-3 md:grid-cols-[2fr_1.5fr_auto]">
               <input type="hidden" name="id" value={candidate.id} />
@@ -144,7 +160,7 @@ export default async function CandidatesPage({
                   className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
                   required
                 >
-                  {positions.map((position: { id: number; name: string }) => (
+                  {positions.map((position: PositionOption) => (
                     <option key={position.id} value={position.id}>
                       {position.name}
                     </option>
