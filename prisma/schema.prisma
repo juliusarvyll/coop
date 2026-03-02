@@ -1,0 +1,90 @@
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ElectionSettings {
+  id        Int      @id
+  isOpen    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Position {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  maxWinners  Int               @default(1)
+  displayOrder Int              @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  candidates  Candidate[]
+  selections  BallotSelection[]
+
+  @@index([displayOrder, name])
+}
+
+model Candidate {
+  id         Int               @id @default(autoincrement())
+  name       String
+  positionId Int
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  position   Position          @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  selections BallotSelection[]
+
+  @@unique([positionId, name])
+  @@index([positionId])
+}
+
+model Voter {
+  id               Int      @id @default(autoincrement())
+  coopId           String
+  coopIdNormalized String   @unique
+  fullName         String?
+  hasVoted         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  ballot           Ballot?
+
+  @@index([coopIdNormalized])
+}
+
+model Ballot {
+  id          Int               @id @default(autoincrement())
+  voterId     Int               @unique
+  submittedAt DateTime          @default(now())
+  voter       Voter             @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  selections  BallotSelection[]
+
+  @@index([submittedAt])
+}
+
+model BallotSelection {
+  id          Int       @id @default(autoincrement())
+  ballotId    Int
+  positionId  Int
+  candidateId Int
+  createdAt   DateTime  @default(now())
+  ballot      Ballot    @relation(fields: [ballotId], references: [id], onDelete: Cascade)
+  position    Position  @relation(fields: [positionId], references: [id], onDelete: Restrict)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@unique([ballotId, positionId, candidateId])
+  @@index([ballotId])
+  @@index([positionId])
+  @@index([candidateId])
+}
